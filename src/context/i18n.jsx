@@ -1,16 +1,17 @@
 // Common
-import { createContext, useCallback, useContext } from "react";
-import { useRouter } from "next/router";
+import { createContext, useCallback, useContext, useMemo } from "react";
 
 const I18NContext = createContext()
 
-export const I18NProvider = ({ children }) => {
-    const { locale } = useRouter()
+export const I18NProvider = ({ locale, children }) => {
 
-    const t = useCallback(( key ) => {
-        const lang = require(`../../public/locales/${locale}.json`)
-        return lang[key]
-    }, [locale])
+    if (locale === undefined) {
+        throw new Error('I18NProvider need receive a "locale" prop.')
+    }
+
+    const lang = useMemo(() => require(`../../public/locales/${locale}.json`), [locale])
+
+    const t = useCallback(( key ) => lang[key], [locale])
 
     return (
         <I18NContext.Provider value={{ t }}>
@@ -23,7 +24,7 @@ export const useI18N = () => {
     const context = useContext(I18NContext)
 
     if (context === undefined) {
-        throw new Error('useI18N must be used within a I18NProvider')
+        throw new Error('useI18N must be used within a I18NProvider.')
     }
 
     return context
